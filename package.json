@@ -1,0 +1,16 @@
+{
+  "name": "nexus-ai",
+  "version": "1.0.0",
+  "description": "NEXUS AI - HUD-style desktop client for Claude, ChatGPT and Gemini",
+  "main": "main.js",
+  "author": "You",
+  "scripts": { "start": "electron .", "build": "electron-builder --win nsis portable" },
+  "devDependencies": { "electron": "^33.0.0", "electron-builder": "^25.0.0" },
+  "build": {
+    "appId": "com.nexus.ai",
+    "productName": "NEXUS AI",
+    "win": { "target": ["nsis", "portable"] },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true },
+    "files": ["main.js", "preload.js", "index.html"]
+  }
+}

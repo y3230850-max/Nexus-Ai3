@@ -1,0 +1,119 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>NEXUS AI</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<style>
+:root{--c:#00f0ff;--c2:#00a9b5;--dim:#0a3a40;--bg:#000608}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(ellipse at 85% 10%,#003a4a 0,transparent 45%),radial-gradient(ellipse at 10% 90%,#00262e 0,transparent 50%),var(--bg);color:var(--c);font:14px Bahnschrift,'Segoe UI',sans-serif;height:100vh;display:grid;grid-template-rows:34px 1fr;overflow:hidden}
+body:after{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(transparent 50%,#0003 50%) 0 0/100% 3px}
+#bar{-webkit-app-region:drag;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid var(--dim);letter-spacing:.3em;font-size:12px}
+#bar span button{-webkit-app-region:no-drag;background:none;border:0;color:var(--c);font-size:15px;width:34px;cursor:pointer}#bar button:hover{background:#00f0ff22}
+main{display:grid;grid-template-columns:250px 1fr 250px;gap:16px;padding:16px;min-height:0}
+aside{display:flex;flex-direction:column;gap:14px;min-height:0}
+.p{border:1px solid var(--dim);border-left:3px solid var(--c);background:#00161ccc;padding:12px;box-shadow:0 0 18px #00f0ff14 inset}
+.ring{width:190px;height:190px;margin:4px auto;border-radius:50%;border:3px solid var(--c);box-shadow:0 0 22px var(--c),0 0 20px var(--c) inset;display:grid;place-items:center;text-align:center;position:relative}
+.ring:before{content:'';position:absolute;inset:12px;border-radius:50%;border:3px dashed var(--c2);animation:spin 24s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#day{font-size:12px}#date{font-size:42px;font-weight:700;line-height:1;text-shadow:0 0 14px var(--c)}#time{font-size:15px}
+.row{display:flex;justify-content:space-between;margin:7px 0;font-size:12px}
+.meter{height:5px;background:var(--dim);margin-top:3px}.meter i{display:block;height:100%;background:var(--c);box-shadow:0 0 8px var(--c);width:0;transition:width .6s}
+.prov{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:8px;border:1px solid var(--dim);background:none;color:var(--c);width:100%;text-align:left;font:inherit;cursor:pointer}
+.prov b{width:12px;height:12px;border-radius:50%;background:var(--dim)}
+.prov.on{border-color:var(--c);background:#00f0ff1c}.prov.on b{background:var(--c);box-shadow:0 0 10px var(--c)}
+#chat{display:grid;grid-template-rows:1fr auto;min-height:0;gap:12px}
+#feed{overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:6px}
+.m{max-width:86%;padding:10px 14px;border:1px solid var(--dim);white-space:pre-wrap;line-height:1.5;color:#c8fbff;background:#001a20cc}
+.m.u{align-self:flex-end;border-color:var(--c);background:#00f0ff18}
+.m small{display:block;color:var(--c);letter-spacing:.2em;font-size:10px;margin-bottom:4px}
+.m.e{border-color:#ff4d6d;color:#ff9fb0}
+.m pre{background:#000;border:1px solid var(--dim);padding:8px;margin:6px 0;overflow:auto;font:12px Consolas,monospace}
+#in{display:flex;gap:8px}
+textarea,input,select{background:#000d10;border:1px solid var(--c2);color:var(--c);font:inherit;padding:10px;outline:none;width:100%}
+textarea{resize:none;height:56px}
+textarea:focus,input:focus{box-shadow:0 0 12px #00f0ff55}
+button.go,.btn{background:var(--c);color:#001;border:0;padding:0 18px;font:inherit;font-weight:700;cursor:pointer;letter-spacing:.1em}
+.btn{padding:8px 10px;width:100%;margin-top:8px}.btn.o{background:none;color:var(--c);border:1px solid var(--c2)}
+.btn:hover,button.go:hover{box-shadow:0 0 14px var(--c)}
+#cfg{display:none;position:fixed;inset:34px 0 0 0;background:#000608f2;z-index:5;place-items:center}
+#cfg>div{width:520px;max-height:90%;overflow:auto}
+label{display:block;font-size:11px;letter-spacing:.2em;margin:10px 0 3px}
+.tools button{margin-bottom:6px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:var(--c2)}
+</style></head><body>
+<div id="bar"><span>NEXUS // AI CORE</span><span><button onclick="nx.win('min')">&#8211;</button><button onclick="nx.win('max')">&#9633;</button><button onclick="nx.win('x')">&#10005;</button></span></div>
+<main>
+<aside>
+ <div class="p"><div class="ring"><div><div id="day"></div><div id="date"></div><div id="time"></div></div></div></div>
+ <div class="p"><div class="row"><span>CPU</span><span id="cpuv"></span></div><div class="meter"><i id="cpu"></i></div>
+  <div class="row"><span>RAM</span><span id="ramv"></span></div><div class="meter"><i id="ram"></i></div>
+  <div class="row"><span>Uptime</span><span id="up"></span></div></div>
+ <div class="p tools"><div class="row">Tools</div>
+  <button class="btn o" onclick="exportChat()">Export chat (.md)</button>
+  <button class="btn o" onclick="clearChat()">Clear chat</button>
+  <button class="btn o" id="micb" onclick="mic()">Voice input</button>
+  <button class="btn o" id="ttsb" onclick="toggleTts()">Read replies: off</button></div>
+</aside>
+<section id="chat"><div id="feed"></div>
+ <div id="in"><textarea id="t" placeholder="Ask anything. Enter to send, Shift+Enter for a new line."></textarea><button class="go" onclick="send()">SEND</button></div></section>
+<aside>
+ <div class="p"><div class="row">Core</div>
+  <button class="prov on" data-p="claude"><b></b>Claude</button>
+  <button class="prov" data-p="gpt"><b></b>ChatGPT</button>
+  <button class="prov" data-p="gemini"><b></b>Gemini</button>
+  <button class="prov" data-p="local"><b></b>Local (LM Studio)</button>
+  <button class="prov" data-p="all"><b></b>All three (compare)</button></div>
+ <div class="p"><div class="row">Mode</div>
+  <select id="persona"></select>
+  <button class="btn" onclick="openCfg()">Open config</button></div>
+</aside></main>
+<div id="cfg"><div class="p"><div class="row"><b>CONFIG</b></div>
+ <label>ANTHROPIC API KEY</label><input id="k_claude" type="password" placeholder="sk-ant-...">
+ <label>CLAUDE MODEL</label><input id="m_claude">
+ <label>OPENAI API KEY</label><input id="k_gpt" type="password" placeholder="sk-...">
+ <label>CHATGPT MODEL</label><input id="m_gpt">
+ <label>GOOGLE AI API KEY</label><input id="k_gemini" type="password" placeholder="AIza...">
+ <label>GEMINI MODEL</label><input id="m_gemini">
+ <label>LOCAL SERVER URL (LM Studio default shown; Ollama: http://localhost:11434/v1)</label><input id="u_local">
+ <label>LOCAL MODEL NAME (leave blank to auto-detect)</label><input id="m_local" placeholder="e.g. llama3.2">
+ <label>LOCAL API KEY (usually blank)</label><input id="k_local" type="password">
+ <label>CUSTOM SYSTEM PROMPT (optional)</label><textarea id="sys" style="height:70px"></textarea>
+ <button class="btn" onclick="saveCfg()">Save</button><button class="btn o" onclick="cfg.style.display='none'">Close</button>
+ <p style="font-size:11px;margin-top:10px;opacity:.7">Keys are encrypted with Windows DPAPI and stay on this PC. Model names are editable so you can use any current model.</p></div></div>
+<script>
+window.onerror=(m,s,l)=>{const f=document.getElementById('feed');if(f)f.insertAdjacentHTML('beforeend','<div class="m e">Script error: '+m+' (line '+l+')</div>')};
+if(!window.nx){document.body.innerHTML='<pre style="color:#ff9fb0;padding:30px">NEXUS AI: the preload bridge did not load (window.nx is missing). Press F12 to see the console.</pre>';throw new Error('no preload')}
+const $=id=>document.getElementById(id);
+const NAMES={claude:'CLAUDE',gpt:'CHATGPT',gemini:'GEMINI',local:'LOCAL'};
+const PERSONAS={'General assistant':'You are a helpful, concise assistant.','Coder':'You are an expert software engineer. Give working code and brief explanations.','Writer':'You are a skilled editor and writer. Improve clarity, tone and structure.','Researcher':'You are a careful analyst. Reason step by step and flag uncertainty.','Translator':'Translate between languages accurately and note nuance.','Tutor':'Teach patiently with simple examples, then check understanding.'};
+let sel='claude',conv={claude:[],gpt:[],gemini:[],local:[]},log=[],tts=false,keys={},models={claude:'claude-sonnet-5-5',gpt:'gpt-4o',gemini:'gemini-2.5-flash',local:''},sysCustom='',localUrl='http://localhost:1234/v1';
+Object.keys(PERSONAS).forEach(p=>persona.add(new Option(p,p)));
+document.querySelectorAll('.prov').forEach(b=>b.onclick=()=>{sel=b.dataset.p;document.querySelectorAll('.prov').forEach(x=>x.classList.toggle('on',x===b))});
+function tick(){const d=new Date();day.textContent=d.toLocaleDateString('en',{weekday:'long'});date.textContent=d.getDate();time.textContent=d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}
+setInterval(tick,1000);tick();
+setInterval(async()=>{const s=await nx.stats();cpu.style.width=s.cpu+'%';ram.style.width=s.ram+'%';cpuv.textContent=s.cpu+'%';ramv.textContent=s.ram+'%';up.textContent=Math.floor(s.up/60)+'h '+s.up%60+'m'},2000);
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt=s=>esc(s).replace(/```(\w*)\n?([\s\S]*?)```/g,'<pre>$2</pre>');
+function add(cls,who,text){const d=document.createElement('div');d.className='m '+cls;d.innerHTML=(who?`<small>${who}</small>`:'')+fmt(text);feed.appendChild(d);feed.scrollTop=feed.scrollHeight;return d}
+async function ask(p,text){
+  conv[p].push({role:'user',content:text});
+  const ph=add('',NAMES[p],'...');
+  const sys=(sysCustom?sysCustom+' ':'')+PERSONAS[persona.value];
+  const r=await nx.ai({provider:p,model:models[p],messages:conv[p],system:sys,baseUrl:localUrl});
+  if(r.error){conv[p].pop();ph.className='m e';ph.innerHTML=`<small>${NAMES[p]}</small>`+esc(r.error);return}
+  conv[p].push({role:'assistant',content:r.text});log.push({who:NAMES[p],text:r.text});
+  ph.innerHTML=`<small>${NAMES[p]}</small>`+fmt(r.text);feed.scrollTop=feed.scrollHeight;
+  if(tts){speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(r.text.replace(/```[\s\S]*?```/g,' code block ')))}
+}
+function send(){const text=t.value.trim();if(!text)return;t.value='';add('u','YOU',text);log.push({who:'YOU',text});
+  (sel==='all'?['claude','gpt','gemini']:[sel]).forEach(p=>ask(p,text))}
+t.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+function clearChat(){conv={claude:[],gpt:[],gemini:[],local:[]};log=[];feed.innerHTML=''}
+function exportChat(){const md=log.map(l=>`**${l.who}**\n\n${l.text}\n`).join('\n---\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));a.download='nexus-chat.md';a.click()}
+function toggleTts(){tts=!tts;ttsb.textContent='Read replies: '+(tts?'on':'off');if(!tts)speechSynthesis.cancel()}
+function mic(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return add('e','','Voice input is not available here.');
+  const r=new R();r.lang='en-US';micb.textContent='Listening...';r.onresult=e=>t.value+=e.results[0][0].transcript;r.onend=()=>micb.textContent='Voice input';r.onerror=()=>micb.textContent='Voice input';r.start()}
+async function openCfg(){keys=await nx.getKeys();for(const p in NAMES){$('k_'+p).value=keys[p]||'';$('m_'+p).value=models[p]}$('sys').value=sysCustom;$('u_local').value=localUrl;cfg.style.display='grid'}
+async function saveCfg(){for(const p in NAMES){keys[p]=$('k_'+p).value.trim();models[p]=$('m_'+p).value.trim()||models[p]}sysCustom=$('sys').value.trim();localUrl=$('u_local').value.trim()||localUrl;
+  await nx.setKeys(keys);localStorage.setItem('nx',JSON.stringify({models,sysCustom,localUrl}));cfg.style.display='none'}
+try{const s=JSON.parse(localStorage.getItem('nx'));if(s){models=Object.assign(models,s.models);sysCustom=s.sysCustom||'';localUrl=s.localUrl||localUrl}}catch{}
+nx.getKeys().then(k=>{if(!Object.values(k).some(Boolean)){add('','NEXUS','Welcome. Pick a core on the right. For free local AI, start the LM Studio server and choose Local. For cloud AI, click Open config and add an API key.')}});
+</script></body></html>
